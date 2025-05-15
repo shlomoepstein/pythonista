@@ -5,19 +5,18 @@ from zoneinfo import ZoneInfo
 
 Point = namedtuple('Point', 'date time lat lon ele')
 
-eastern = ZoneInfo("America/New_York")
-utc = ZoneInfo("UTC")
+eastern = ZoneInfo('America/New_York')
+utc = ZoneInfo('UTC')
 
 preamble = '''\
 <?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1"
-     creator="csv-to-gpx"
-     xmlns="http://www.topografix.com/GPX/1/1"
-     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="
-        http://www.topografix.com/GPX/1/1
-        https://www.topografix.com/GPX/1/1/gpx.xsd">
-
+  creator="csv-to-gpx"
+  xmlns="http://www.topografix.com/GPX/1/1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.topografix.com/GPX/1/1
+    https://www.topografix.com/GPX/1/1/gpx.xsd">
   <trk>
     <name>csv to gpx</name>'''
 segstart = '''
@@ -26,7 +25,6 @@ segend = '''
     </trkseg>'''
 postamble = '''
   </trk>
-
 </gpx>\n'''
 
 
