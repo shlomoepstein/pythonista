@@ -3,6 +3,7 @@ from collections import namedtuple
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+
 Point = namedtuple('Point', 'date time lat lon ele')
 
 eastern = ZoneInfo('America/New_York')
@@ -41,16 +42,42 @@ def gpxpoint(point):
       </trkpt>'''
 
 
-with open('out.gpx', 'a') as outfile:
+def similar(p1, p2, eps=1e-3):
+   lat1, lon1 = float(p1.lat), float(p1.lon)
+   lat2, lon2 = float(p2.lat), float(p2.lon)
+
+   return (abs(lat1 - lat2) <= eps
+           and abs(lon1 - lon2) <= eps)
+
+
+with open('out.gpx', 'w') as outfile:
    outfile.write(preamble)
-   outfile.write(segstart)
 
    with open('raw.csv', newline='') as infile:
       reader = csv.reader(infile, skipinitialspace=True)
 
-      for point in map(Point._make, reader):
-         outfile.write(gpxpoint(point))
+      outfile.write(segstart)
+      inseg = True
+      prev = Point._make(next(reader))
 
-   outfile.write(segend)
+      for curr in map(Point._make, reader):
+         if inseg:
+            outfile.write(gpxpoint(prev))
+
+            if similar(curr, prev):
+               outfile.write(segend)
+               inseg = False
+
+         elif not similar(curr, prev):
+            outfile.write(segstart)
+            outfile.write(gpxpoint(prev))
+            inseg = True
+
+         prev = curr
+
+      if inseg:
+         outfile.write(gpxpoint(prev))
+         outfile.write(segend)
+
    outfile.write(postamble)
 
