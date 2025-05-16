@@ -1,5 +1,7 @@
 import csv
 from collections import namedtuple
+from operator import itemgetter
+from itertools import groupby
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -42,7 +44,7 @@ def gpxpoint(point):
       </trkpt>'''
 
 
-def similar(p1, p2, eps=1e-3):
+def similar(p1, p2, eps):
    lat1, lon1 = float(p1.lat), float(p1.lon)
    lat2, lon2 = float(p2.lat), float(p2.lon)
 
@@ -50,34 +52,39 @@ def similar(p1, p2, eps=1e-3):
            and abs(lon1 - lon2) <= eps)
 
 
-with open('out.gpx', 'w') as outfile:
+# give each cluster a unique id
+def cid_points(points, eps=1e-3):
+   prev = next(points)
+   cid = 0
+   yield cid, prev
+
+   for curr in points:
+      if not similar(curr, prev, eps):
+         cid += 1
+      prev = curr
+      yield cid, curr
+
+
+with (open('locations.csv', newline='') as infile,
+      open('out.gpx', 'w', encoding='utf-8', newline='') as outfile):
+
+   reader = csv.reader(infile, skipinitialspace=True)
+   points = map(Point._make, reader)
+
    outfile.write(preamble)
+   outfile.write(segstart)
 
-   with open('raw.csv', newline='') as infile:
-      reader = csv.reader(infile, skipinitialspace=True)
+   for cid, group in groupby(cid_points(points), itemgetter(0)):
+      cluster = [point for cid, point in group]
 
-      outfile.write(segstart)
-      inseg = True
-      prev = Point._make(next(reader))
-
-      for curr in map(Point._make, reader):
-         if inseg:
-            outfile.write(gpxpoint(prev))
-
-            if similar(curr, prev):
-               outfile.write(segend)
-               inseg = False
-
-         elif not similar(curr, prev):
-            outfile.write(segstart)
-            outfile.write(gpxpoint(prev))
-            inseg = True
-
-         prev = curr
-
-      if inseg:
-         outfile.write(gpxpoint(prev))
+      if len(cluster) == 1:
+         outfile.write(gpxpoint(cluster[0]))
+      else:
+         outfile.write(gpxpoint(cluster[0]))
          outfile.write(segend)
+         outfile.write(segstart)
+         outfile.write(gpxpoint(cluster[-1]))
 
+   outfile.write(segend)
    outfile.write(postamble)
 
