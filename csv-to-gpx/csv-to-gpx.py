@@ -32,11 +32,14 @@ postamble = '''
 
 
 def gpxpoint(point):
-   utc_dt = (datetime.fromisoformat(f'{point.date}T{point.time}')
-                     .replace(tzinfo=eastern)
-                     .astimezone(utc)
-                     .isoformat()
-                     .replace('+00:00', 'Z'))
+   utc_dt = (
+      datetime
+         .fromisoformat(f'{point.date}T{point.time}')
+         .replace(tzinfo=eastern)
+         .astimezone(utc)
+         .isoformat()
+         .replace('+00:00', 'Z'))
+
    return f'''
       <trkpt lat="{point.lat}" lon="{point.lon}">
         <ele>{point.ele}</ele>
